@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "user-1",
+      "description": "User avatar 1",
+      "imageUrl": "https://picsum.photos/seed/user1/100/100",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "user-2",
+      "description": "User avatar 2",
+      "imageUrl": "https://picsum.photos/seed/user2/100/100",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "user-3",
+      "description": "User avatar 3",
+      "imageUrl": "https://picsum.photos/seed/user3/100/100",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-4",
+      "description": "User avatar 4",
+      "imageUrl": "https://picsum.photos/seed/user4/100/100",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "user-5",
+      "description": "User avatar 5",
+      "imageUrl": "https://picsum.photos/seed/user5/100/100",
+      "imageHint": "man smiling"
+    },
+    {
+      "id": "map-background",
+      "description": "Map background for dashboard",
+      "imageUrl": "https://picsum.photos/seed/mapbg/1200/400",
+      "imageHint": "city map"
+    },
+    {
+      "id": "track-map",
+      "description": "Map for tracking page",
+      "imageUrl": "https://picsum.photos/seed/trackmap/1200/800",
+      "imageHint": "street map"
+    }
+  ]
 }
