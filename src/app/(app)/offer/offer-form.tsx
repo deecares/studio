@@ -19,16 +19,18 @@ import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   optimizeRouteForPooling,
   type OptimizeRouteForPoolingOutput,
 } from '@/ai/flows/route-optimization-pooling';
-import { Loader2, Wand2 } from 'lucide-react';
+import { Loader2, Wand2, Bike, Car } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -36,6 +38,10 @@ const formSchema = z.object({
   endLocation: z.string().min(3, 'End location is required'),
   stops: z.string().optional(),
   seats: z.coerce.number().min(1, 'At least 1 seat must be available').max(8),
+  transportMode: z.enum(['car', 'bike'], {
+    required_error: 'You need to select a transport mode.',
+  }),
+  fare: z.coerce.number().min(0, 'Fare must be a positive number'),
 });
 
 type OfferFormValues = z.infer<typeof formSchema>;
@@ -53,6 +59,8 @@ export default function OfferForm() {
       endLocation: '',
       stops: '',
       seats: 1,
+      transportMode: 'car',
+      fare: 0,
     },
   });
 
@@ -101,7 +109,7 @@ export default function OfferForm() {
     console.log(values);
     toast({
       title: "Ride Offered!",
-      description: `Your ride from ${values.startLocation} to ${values.endLocation} has been listed.`,
+      description: `Your ${values.transportMode} ride from ${values.startLocation} to ${values.endLocation} for ₹${values.fare} has been listed.`,
     })
     form.reset();
     setOptimizationResult(null);
@@ -118,7 +126,42 @@ export default function OfferForm() {
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+               <FormField
+                control={form.control}
+                name="transportMode"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Mode of Transport</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="car" />
+                          </FormControl>
+                          <FormLabel className="font-normal flex items-center gap-2">
+                            <Car /> Car
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="bike" />
+                          </FormControl>
+                          <FormLabel className="font-normal flex items-center gap-2">
+                           <Bike /> Bike
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -163,19 +206,34 @@ export default function OfferForm() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="seats"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Available Seats</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" max="8" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="seats"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Available Seats</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="1" max="8" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="fare"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fare (₹)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" placeholder="e.g., 500" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
             <CardFooter className="flex flex-col items-stretch gap-4 sm:flex-row sm:justify-between">
               <Button
