@@ -93,7 +93,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">${ride.price.toFixed(2)}</p>
+                    <p className="font-semibold">₹{ride.price.toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">{ride.driver.id === currentUser.id ? 'Driving' : 'Riding'}</p>
                   </div>
                 </div>

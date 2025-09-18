@@ -19,7 +19,7 @@ export const rides: Ride[] = [
     to: 'Airport',
     departureTime: new Date(new Date().getTime() + 2 * 60 * 60 * 1000), // 2 hours from now
     arrivalTime: new Date(new Date().getTime() + 2.5 * 60 * 60 * 1000),
-    price: 15.00,
+    price: 1200.00,
     seats: { total: 3, available: 1 },
     status: 'upcoming',
   },
@@ -31,7 +31,7 @@ export const rides: Ride[] = [
     to: 'City Center',
     departureTime: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000), // Yesterday
     arrivalTime: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000),
-    price: 12.50,
+    price: 1000.00,
     seats: { total: 2, available: 0 },
     status: 'completed',
   },
@@ -43,7 +43,7 @@ export const rides: Ride[] = [
     to: 'East Side',
     departureTime: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     arrivalTime: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-    price: 8.00,
+    price: 640.00,
     seats: { total: 4, available: 3 },
     status: 'completed',
   },
@@ -55,7 +55,7 @@ export const rides: Ride[] = [
     to: 'Tech Park',
     departureTime: new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000), // Tomorrow
     arrivalTime: new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000 + 25 * 60 * 1000),
-    price: 7.50,
+    price: 600.00,
     seats: { total: 3, available: 3 },
     status: 'upcoming',
   },
@@ -67,7 +67,7 @@ export const rides: Ride[] = [
     to: 'Residential Area',
     departureTime: new Date(new Date().getTime() - 30 * 60 * 1000), // 30 minutes ago
     arrivalTime: new Date(new Date().getTime() + 30 * 60 * 1000),
-    price: 20.00,
+    price: 1600.00,
     seats: { total: 1, available: 0 },
     status: 'active',
   },

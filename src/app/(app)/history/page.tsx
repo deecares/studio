@@ -22,7 +22,7 @@ export default function HistoryPage() {
                 <CardDescription>{format(ride.departureTime, 'MMMM d, yyyy')}</CardDescription>
             </div>
             <div className="text-right">
-                <p className="text-lg font-bold">${ride.price.toFixed(2)}</p>
+                <p className="text-lg font-bold">₹{ride.price.toFixed(2)}</p>
                 <p className="text-sm text-muted-foreground">{role}</p>
             </div>
         </div>

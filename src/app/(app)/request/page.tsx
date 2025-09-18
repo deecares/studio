@@ -87,7 +87,7 @@ export default function RequestRidePage() {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-lg font-bold">${ride.price.toFixed(2)}</p>
+                                <p className="text-lg font-bold">₹{ride.price.toFixed(2)}</p>
                                 <p className="text-xs text-muted-foreground">{ride.seats.available} seats left</p>
                             </div>
                         </div>
