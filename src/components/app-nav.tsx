@@ -18,7 +18,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSeparator,
+  SidebarSeparator,
   SidebarGroup,
   SidebarGroupLabel
 } from "@/components/ui/sidebar";
@@ -61,7 +61,7 @@ const AppNav = () => {
           </SidebarMenuItem>
         </SidebarGroup>
 
-        <SidebarMenuSeparator />
+        <SidebarSeparator />
 
         <SidebarGroup>
           <SidebarGroupLabel>Rides</SidebarGroupLabel>
@@ -91,7 +91,7 @@ const AppNav = () => {
           </SidebarMenuItem>
         </SidebarGroup>
 
-        <SidebarMenuSeparator />
+        <SidebarSeparator />
         
         <SidebarGroup>
           <SidebarGroupLabel>Activity</SidebarGroupLabel>
