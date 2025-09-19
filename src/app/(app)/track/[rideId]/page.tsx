@@ -1,16 +1,72 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import { AppHeader } from "@/components/app-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
 import { rides } from "@/lib/data";
 import { notFound } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import { Car, Clock, MapPin } from "lucide-react";
+import { formatDistanceToNow, addSeconds } from "date-fns";
+import { Car, Clock, MapPin, Share2, Siren } from "lucide-react";
+import { AvatarImage } from '@radix-ui/react-avatar';
 
 export default function TrackRidePage({ params }: { params: { rideId: string } }) {
   const ride = rides.find(r => r.id === params.rideId);
+  const { toast } = useToast();
+  
+  const [eta, setEta] = useState(ride?.arrivalTime ? new Date(ride.arrivalTime) : new Date());
 
+  useEffect(() => {
+    if (ride && ride.status === 'active') {
+      const timer = setInterval(() => {
+        setEta(prevEta => addSeconds(prevEta, -5)); 
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [ride]);
+  
   if (!ride) {
     notFound();
+  }
+
+  const handleShare = () => {
+    const shareUrl = window.location.href;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Track My Ride',
+        text: `I'm on a ride from ${ride.from} to ${ride.to}. Track my progress here:`,
+        url: shareUrl,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        toast({
+            title: 'Link Copied!',
+            description: 'Ride tracking link copied to clipboard.',
+        });
+      });
+    }
+  };
+
+  const handleSos = () => {
+    console.log("SOS Activated!");
+    toast({
+        variant: 'destructive',
+        title: 'SOS Alert Sent',
+        description: 'Your location has been shared with emergency contacts and authorities.',
+    });
   }
 
   return (
@@ -26,10 +82,12 @@ export default function TrackRidePage({ params }: { params: { rideId: string } }
                 data-ai-hint="street map"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-8">
-                <h2 className="text-3xl font-bold text-white">ETA: {formatDistanceToNow(ride.arrivalTime)}</h2>
+                <h2 className="text-3xl font-bold text-white">
+                    ETA: {formatDistanceToNow(eta, { addSuffix: true })}
+                </h2>
             </div>
         </div>
-        <div className="lg:col-span-1 p-4 md:p-8 flex flex-col">
+        <div className="lg:col-span-1 p-4 md:p-8 flex flex-col gap-4">
           <Card className="w-full flex-1 flex flex-col">
             <CardHeader>
               <CardTitle>Ride Details</CardTitle>
@@ -62,7 +120,7 @@ export default function TrackRidePage({ params }: { params: { rideId: string } }
                     <Clock className="h-5 w-5 text-muted-foreground" />
                     <div>
                         <p className="text-muted-foreground">Estimated Arrival</p>
-                        <p className="font-medium">{new Date(ride.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="font-medium">{new Date(eta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -75,6 +133,30 @@ export default function TrackRidePage({ params }: { params: { rideId: string } }
               </div>
             </CardContent>
           </Card>
+          <div className='grid grid-cols-2 gap-4'>
+            <Button variant="outline" onClick={handleShare}>
+              <Share2 className="mr-2" /> Share Ride
+            </Button>
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                        <Siren className="mr-2" /> SOS
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm SOS Alert</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will immediately alert our safety team and local authorities with your ride details and current location. Are you sure you want to proceed?
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSos}>Confirm & Send Alert</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </main>
     </div>
