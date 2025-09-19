@@ -1,6 +1,6 @@
 import { AppHeader } from "@/components/app-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle, UserPlus, Car, Search, GitCompareArrows, Map, MessageSquare } from "lucide-react";
+import { UserPlus, Car, Search, Map } from "lucide-react";
 
 const features = [
   {
@@ -17,11 +17,6 @@ const features = [
     icon: Search,
     title: "Ride Search & Booking (for Riders)",
     description: "Riders can find matching rides by entering their pickup and drop-off locations, along with their preferred travel time.",
-  },
-  {
-    icon: GitCompareArrows,
-    title: "Matching Algorithm",
-    description: "Our smart algorithm matches riders with drivers based on route overlap, time preferences (with a ±15 min tolerance), cost, and seat availability.",
   },
   {
     icon: Map,
@@ -41,7 +36,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Your guide to smarter, shared journeys.</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
             {features.map((feature, index) => (
                 <Card key={index}>
                     <CardHeader className="flex flex-row items-center gap-4 space-y-0">
