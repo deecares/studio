@@ -61,6 +61,8 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
     () => (ride ? ride.fromCoords : { lat: 0, lng: 0 }),
     [ride]
   );
+  
+  const [routeStep, setRouteStep] = useState(0);
 
   // Fetch directions
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
             toast({
               variant: 'destructive',
               title: 'Could not calculate route',
-              description: 'There was an issue displaying the ride route.'
+              description: 'There was an issue displaying the ride route. This may be due to an invalid API key or incorrect API setup.'
             })
           }
         }
@@ -93,20 +95,21 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
     if (!directions || ride?.status !== 'active') return;
 
     const route = directions.routes[0].overview_path;
-    let step = 0;
+    let currentStep = 0;
 
     const timer = setInterval(() => {
-      if (step < route.length) {
-        setDriverPosition({ lat: route[step].lat(), lng: route[step].lng() });
+      if (currentStep < route.length) {
+        setDriverPosition({ lat: route[currentStep].lat(), lng: route[currentStep].lng() });
+        setRouteStep(currentStep);
         
-        const remainingDistance = google.maps.geometry.spherical.computeLength(route.slice(step));
+        const remainingDistance = google.maps.geometry.spherical.computeLength(route.slice(currentStep));
         const avgSpeedKps = 50 / 3600; // Average speed of 50 km/h in km/s
         const remainingSeconds = remainingDistance / 1000 / avgSpeedKps;
         const arrivalTime = new Date(Date.now() + remainingSeconds * 1000);
         
         setEta(formatDistanceToNow(arrivalTime, { addSuffix: true }));
 
-        step = Math.min(step + 1, route.length -1);
+        currentStep = Math.min(currentStep + 1, route.length -1);
       } else {
          setEta('Arrived');
          clearInterval(timer);
@@ -157,7 +160,7 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
               <AlertTriangle className="h-10 w-10 text-destructive" />
               <h3 className="mt-4 text-lg font-semibold">Map Error</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Google Maps could not be loaded. Please ensure you have a valid <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> set in your environment.
+                Google Maps could not be loaded. Please ensure you have a valid <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> set in your <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">.env</code> file and that the necessary APIs (Maps JavaScript API & Directions API) are enabled in your Google Cloud project.
               </p>
             </div>
         );
@@ -168,28 +171,33 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
           <Loader2 className="h-10 w-10 animate-spin" />
         </div>
       );
+      
+    const route = directions?.routes[0].overview_path;
 
     return (
       <GoogleMap mapContainerStyle={mapContainerStyle} center={mapCenter} zoom={13}>
         {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
-        {driverPosition && <MarkerF position={driverPosition} title={'Driver'} icon={{
-            path: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z', // A simple arrow icon
-            scale: 1.5,
-            rotation: directions && step < route.length ? google.maps.geometry.spherical.computeHeading(route[step], route[step+1]) : 0,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeWeight: 2,
-            strokeColor: 'white',
-            anchor: new google.maps.Point(12,12)
-        }}/>}
+        {driverPosition && route && (
+          <MarkerF 
+            position={driverPosition} 
+            title={'Driver'} 
+            icon={{
+              path: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z', // A simple arrow icon
+              scale: 1.5,
+              rotation: routeStep < route.length -1 ? google.maps.geometry.spherical.computeHeading(route[routeStep], route[routeStep+1]) : 0,
+              fillColor: '#4285F4',
+              fillOpacity: 1,
+              strokeWeight: 2,
+              strokeColor: 'white',
+              anchor: new google.maps.Point(12,12)
+            }}
+          />
+        )}
         <MarkerF position={ride.fromCoords} label="A" title="Start"/>
         <MarkerF position={ride.toCoords} label="B" title="End"/>
       </GoogleMap>
     );
   };
-
-  const route = directions?.routes[0].overview_path;
-  const step = route ? route.findIndex(p => p.lat() === driverPosition?.lat && p.lng() === driverPosition?.lng) : 0;
 
   return (
     <div className="flex h-screen flex-col">
@@ -273,7 +281,7 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
                   <AlertDialogTitle>Confirm SOS Alert</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will immediately alert our safety team and local
-                    authorities with your ride details and current location. Are
+                    authorities with your ride details and. Are
                     you sure you want to proceed?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -291,3 +299,5 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
     </div>
   );
 }
+
+    
