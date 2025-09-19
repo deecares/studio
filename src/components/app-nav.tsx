@@ -3,6 +3,7 @@
 import {
   Car,
   CarTaxiFront,
+  CreditCard,
   History,
   LayoutDashboard,
   MessageSquare,
@@ -104,6 +105,18 @@ const AppNav = () => {
               <Link href="/history">
                 <History />
                 <span>Ride History</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/payments")}
+              tooltip="Payments"
+            >
+              <Link href="/payments">
+                <CreditCard />
+                <span>Payments</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

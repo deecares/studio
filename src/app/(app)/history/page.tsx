@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { currentUser, rides } from "@/lib/data";
 import { format } from "date-fns";
+import { IndianRupee } from "lucide-react";
 
 export default function HistoryPage() {
   const ridesAsRider = rides.filter(ride => 
@@ -22,7 +23,7 @@ export default function HistoryPage() {
                 <CardDescription>{format(ride.departureTime, 'MMMM d, yyyy')}</CardDescription>
             </div>
             <div className="text-right">
-                <p className="text-lg font-bold">₹{ride.price.toFixed(2)}</p>
+                <p className="text-lg font-bold flex items-center justify-end"><IndianRupee className="h-5 w-5" />{ride.price.toFixed(2)}</p>
                 <p className="text-sm text-muted-foreground">{role}</p>
             </div>
         </div>
