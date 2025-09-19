@@ -1,6 +1,6 @@
-import type { User, Ride, Conversation, Message } from '@/lib/types';
+import type { User, Ride, Conversation, Message, Feedback } from '@/lib/types';
 
-export const users: User[] = [
+const tempUsers: Omit<User, 'feedback' | 'ridesGiven' | 'ridesTaken' | 'memberSince'>[] = [
   { id: 'user-1', name: 'Alice', avatar: 'https://picsum.photos/seed/user1/100/100' },
   { id: 'user-2', name: 'Bob', avatar: 'https://picsum.photos/seed/user2/100/100' },
   { id: 'user-3', name: 'Charlie', avatar: 'https://picsum.photos/seed/user3/100/100' },
@@ -8,9 +8,32 @@ export const users: User[] = [
   { id: 'user-5', name: 'Eve', avatar: 'https://picsum.photos/seed/user5/100/100' },
 ];
 
+export const users: User[] = tempUsers.map((u, i) => ({
+    ...u,
+    memberSince: new Date(new Date().setFullYear(new Date().getFullYear() - (i % 3))), // Member for 0-2 years
+    ridesGiven: (i + 1) * 3,
+    ridesTaken: (5-i) * 4,
+    feedback: [
+        {
+            id: `feedback-${i}-1`,
+            author: tempUsers[(i + 1) % 5] as User,
+            rating: 5,
+            comment: 'Great ride, very friendly and punctual!',
+            timestamp: new Date(new Date().getTime() - (i + 1) * 24 * 60 * 60 * 1000)
+        },
+        {
+            id: `feedback-${i}-2`,
+            author: tempUsers[(i + 2) % 5] as User,
+            rating: 4,
+            comment: 'Smooth journey, but the music was a bit loud.',
+            timestamp: new Date(new Date().getTime() - (i + 5) * 24 * 60 * 60 * 1000)
+        }
+    ]
+}));
+
 export const currentUser: User = users[0];
 
-export const rides: Ride[] = [
+export let rides: Ride[] = [
   {
     id: 'ride-1',
     driver: users[1],
@@ -79,7 +102,7 @@ const generateMessages = (participant: User): Message[] => [
     { id: 'msg-3', sender: participant, text: 'Great, see you soon!', timestamp: new Date(new Date().getTime() - 8 * 60 * 1000), isRead: false },
 ];
 
-export const conversations: Conversation[] = [
+export let conversations: Conversation[] = [
     {
         id: 'convo-1',
         participant: users[1],
@@ -101,3 +124,17 @@ export const conversations: Conversation[] = [
         ]
     }
 ]
+
+export const addFeedback = (userId: string, feedback: Omit<Feedback, 'id' | 'timestamp'>) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+        if (!user.feedback) {
+            user.feedback = [];
+        }
+        user.feedback.push({
+            ...feedback,
+            id: `feedback-${Date.now()}`,
+            timestamp: new Date(),
+        });
+    }
+}

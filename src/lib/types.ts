@@ -2,6 +2,18 @@ export type User = {
   id: string;
   name: string;
   avatar: string;
+  feedback?: Feedback[];
+  memberSince?: Date;
+  ridesGiven?: number;
+  ridesTaken?: number;
+};
+
+export type Feedback = {
+  id: string;
+  author: User;
+  rating: number;
+  comment: string;
+  timestamp: Date;
 };
 
 export type Ride = {

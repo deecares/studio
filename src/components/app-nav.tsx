@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   PlusCircle,
-  Route,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 const AppNav = () => {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.startsWith(path);
 
   return (
     <Sidebar>
@@ -57,6 +57,18 @@ const AppNav = () => {
               <Link href="/dashboard">
                 <LayoutDashboard />
                 <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/profile")}
+              tooltip="Profile"
+            >
+              <Link href="/profile">
+                <User />
+                <span>Profile</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
