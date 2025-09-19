@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight, IndianRupee } from "lucide-react";
 import { rides, users } from "@/lib/data";
 import { Ride } from "@/lib/types";
 import Image from "next/image";
@@ -109,7 +110,7 @@ export default function RequestRidePage() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xl font-bold">₹{ride.price.toFixed(2)}</p>
+                                        <p className="text-xl font-bold flex items-center"><IndianRupee className="h-5 w-5" />{ride.price.toFixed(2)}</p>
                                         <p className="text-xs text-muted-foreground">{ride.seats.available} seats left</p>
                                     </div>
                                 </div>

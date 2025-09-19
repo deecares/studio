@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -30,7 +31,7 @@ import {
   optimizeRouteForPooling,
   type OptimizeRouteForPoolingOutput,
 } from '@/ai/flows/route-optimization-pooling';
-import { Loader2, Wand2, Bike, Car } from 'lucide-react';
+import { Loader2, Wand2, Bike, Car, IndianRupee } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -225,7 +226,9 @@ export default function OfferForm() {
                   name="fare"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Fare (₹)</FormLabel>
+                      <FormLabel className="flex items-center">
+                        Fare (<IndianRupee className="h-4 w-4" />)
+                      </FormLabel>
                       <FormControl>
                         <Input type="number" min="0" placeholder="e.g., 500" {...field} />
                       </FormControl>

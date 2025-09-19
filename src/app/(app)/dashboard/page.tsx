@@ -20,6 +20,7 @@ import {
   ArrowRight,
   MessageSquare,
   Star,
+  IndianRupee,
 } from 'lucide-react';
 import { currentUser, rides, conversations } from '@/lib/data';
 import { Ride } from '@/lib/types';
@@ -84,7 +85,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex justify-between text-sm">
           <p className="font-medium text-muted-foreground">Price</p>
-          <p>₹{ride.price.toFixed(2)}</p>
+          <p className='flex items-center'><IndianRupee className="h-4 w-4" />{ride.price.toFixed(2)}</p>
         </div>
       </CardContent>
       <CardFooter className="bg-muted/30 p-4">
