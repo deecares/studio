@@ -16,12 +16,19 @@ export type Feedback = {
   timestamp: Date;
 };
 
+export type Coordinates = {
+  lat: number;
+  lng: number;
+};
+
 export type Ride = {
   id: string;
   driver: User;
   riders: User[];
   from: string;
+  fromCoords: Coordinates;
   to: string;
+  toCoords: Coordinates;
   departureTime: Date;
   arrivalTime: Date;
   price: number;

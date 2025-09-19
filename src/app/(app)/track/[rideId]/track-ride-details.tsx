@@ -1,7 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import {
+  GoogleMap,
+  useJsApiLoader,
+  MarkerF,
+  DirectionsRenderer,
+} from '@react-google-maps/api';
 import { AppHeader } from '@/components/app-header';
 import {
   Card,
@@ -25,26 +31,85 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { rides } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { formatDistanceToNow, addSeconds } from 'date-fns';
-import { Car, Clock, MapPin, Share2, Siren } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Car, Clock, MapPin, Share2, Siren, Loader2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
+import { Coordinates } from '@/lib/types';
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+};
 
 export default function TrackRideDetails({ rideId }: { rideId: string }) {
   const ride = rides.find(r => r.id === rideId);
   const { toast } = useToast();
 
-  const [eta, setEta] = useState(
-    ride?.arrivalTime ? new Date(ride.arrivalTime) : new Date()
+  const [eta, setEta] = useState<string>('Calculating...');
+  const [driverPosition, setDriverPosition] = useState<Coordinates | null>(
+    ride ? ride.fromCoords : null
+  );
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries: ['places'],
+  });
+
+  const mapCenter = useMemo(
+    () => (ride ? ride.fromCoords : { lat: 0, lng: 0 }),
+    [ride]
   );
 
+  // Fetch directions
   useEffect(() => {
-    if (ride && ride.status === 'active') {
-      const timer = setInterval(() => {
-        setEta(prevEta => addSeconds(prevEta, -5));
-      }, 5000);
-      return () => clearInterval(timer);
+    if (isLoaded && ride) {
+      const directionsService = new google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: ride.fromCoords,
+          destination: ride.toCoords,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            setDirections(result);
+          } else {
+            console.error(`error fetching directions ${result}`);
+          }
+        }
+      );
     }
-  }, [ride]);
+  }, [isLoaded, ride]);
+
+  // Simulate driver movement and update ETA
+  useEffect(() => {
+    if (!directions || ride?.status !== 'active') return;
+
+    const route = directions.routes[0].overview_path;
+    let step = 0;
+
+    const timer = setInterval(() => {
+      if (step < route.length) {
+        setDriverPosition({ lat: route[step].lat(), lng: route[step].lng() });
+        
+        const remainingDistance = google.maps.geometry.spherical.computeLength(route.slice(step));
+        const avgSpeedKps = 50 / 3600; // Average speed of 50 km/h in km/s
+        const remainingSeconds = remainingDistance / 1000 / avgSpeedKps;
+        const arrivalTime = new Date(Date.now() + remainingSeconds * 1000);
+        
+        setEta(formatDistanceToNow(arrivalTime, { addSuffix: true }));
+
+        step = Math.min(step + 1, route.length -1);
+      } else {
+         setEta('Arrived');
+         clearInterval(timer);
+      }
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(timer);
+  }, [directions, ride?.status]);
 
   if (!ride) {
     notFound();
@@ -80,22 +145,41 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
     });
   };
 
+  const renderMap = () => {
+    if (loadError) return <div>Error loading maps</div>;
+    if (!isLoaded)
+      return (
+        <div className="flex h-full w-full items-center justify-center bg-muted">
+          <Loader2 className="h-10 w-10 animate-spin" />
+        </div>
+      );
+
+    return (
+      <GoogleMap mapContainerStyle={mapContainerStyle} center={mapCenter} zoom={13}>
+        {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
+        {driverPosition && <MarkerF position={driverPosition} title={'Driver'} icon={{
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 7,
+            rotation: directions ? google.maps.geometry.spherical.computeHeading(directions.routes[0].overview_path[0], directions.routes[0].overview_path[1]) : 0,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: 'white',
+        }}/>}
+        <MarkerF position={ride.fromCoords} label="A" title="Start"/>
+        <MarkerF position={ride.toCoords} label="B" title="End"/>
+      </GoogleMap>
+    );
+  };
+
   return (
     <div className="flex h-screen flex-col">
       <AppHeader title="Track Your Ride" />
       <main className="grid flex-1 grid-cols-1 gap-0 overflow-hidden lg:grid-cols-3">
-        <div className="relative h-[50vh] lg:h-full">
-          <Image
-            src="https://picsum.photos/seed/trackmap/1200/800"
-            alt="Map showing ride route"
-            fill
-            className="object-cover"
-            data-ai-hint="street map"
-          />
-          <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 to-transparent p-8">
-            <h2 className="text-3xl font-bold text-white">
-              ETA: {formatDistanceToNow(eta, { addSuffix: true })}
-            </h2>
+        <div className="relative h-[50vh] bg-muted lg:h-full">
+          {renderMap()}
+          <div className="absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-black/60 to-transparent p-4 lg:p-8">
+            <h2 className="text-3xl font-bold text-white">ETA: {eta}</h2>
           </div>
         </div>
         <div className="flex flex-col gap-4 p-4 md:p-8 lg:col-span-1">
@@ -141,13 +225,8 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-muted-foreground">Estimated Arrival</p>
-                    <p className="font-medium">
-                      {new Date(eta).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
+                    <p className="text-muted-foreground">Status</p>
+                    <p className="font-medium capitalize">{ride.status}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
