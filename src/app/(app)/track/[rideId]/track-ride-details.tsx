@@ -32,7 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { rides } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
-import { Car, Clock, MapPin, Share2, Siren, Loader2 } from 'lucide-react';
+import { Car, Clock, MapPin, Share2, Siren, Loader2, AlertTriangle } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Coordinates } from '@/lib/types';
 
@@ -54,7 +54,7 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-    libraries: ['places'],
+    libraries: ['places', 'geometry'],
   });
 
   const mapCenter = useMemo(
@@ -64,7 +64,7 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
 
   // Fetch directions
   useEffect(() => {
-    if (isLoaded && ride) {
+    if (isLoaded && ride && !directions) {
       const directionsService = new google.maps.DirectionsService();
       directionsService.route(
         {
@@ -77,11 +77,16 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
             setDirections(result);
           } else {
             console.error(`error fetching directions ${result}`);
+            toast({
+              variant: 'destructive',
+              title: 'Could not calculate route',
+              description: 'There was an issue displaying the ride route.'
+            })
           }
         }
       );
     }
-  }, [isLoaded, ride]);
+  }, [isLoaded, ride, directions, toast]);
 
   // Simulate driver movement and update ETA
   useEffect(() => {
@@ -146,7 +151,17 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
   };
 
   const renderMap = () => {
-    if (loadError) return <div>Error loading maps</div>;
+    if (loadError || !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        return (
+            <div className="flex h-full w-full flex-col items-center justify-center bg-muted p-4 text-center">
+              <AlertTriangle className="h-10 w-10 text-destructive" />
+              <h3 className="mt-4 text-lg font-semibold">Map Error</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Google Maps could not be loaded. Please ensure you have a valid <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> set in your environment.
+              </p>
+            </div>
+        );
+    }
     if (!isLoaded)
       return (
         <div className="flex h-full w-full items-center justify-center bg-muted">
@@ -158,13 +173,14 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
       <GoogleMap mapContainerStyle={mapContainerStyle} center={mapCenter} zoom={13}>
         {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
         {driverPosition && <MarkerF position={driverPosition} title={'Driver'} icon={{
-            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            scale: 7,
-            rotation: directions ? google.maps.geometry.spherical.computeHeading(directions.routes[0].overview_path[0], directions.routes[0].overview_path[1]) : 0,
+            path: 'M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z', // A simple arrow icon
+            scale: 1.5,
+            rotation: directions && step < route.length ? google.maps.geometry.spherical.computeHeading(route[step], route[step+1]) : 0,
             fillColor: '#4285F4',
             fillOpacity: 1,
             strokeWeight: 2,
             strokeColor: 'white',
+            anchor: new google.maps.Point(12,12)
         }}/>}
         <MarkerF position={ride.fromCoords} label="A" title="Start"/>
         <MarkerF position={ride.toCoords} label="B" title="End"/>
@@ -172,11 +188,14 @@ export default function TrackRideDetails({ rideId }: { rideId: string }) {
     );
   };
 
+  const route = directions?.routes[0].overview_path;
+  const step = route ? route.findIndex(p => p.lat() === driverPosition?.lat && p.lng() === driverPosition?.lng) : 0;
+
   return (
     <div className="flex h-screen flex-col">
       <AppHeader title="Track Your Ride" />
       <main className="grid flex-1 grid-cols-1 gap-0 overflow-hidden lg:grid-cols-3">
-        <div className="relative h-[50vh] bg-muted lg:h-full">
+        <div className="relative h-[50vh] bg-muted lg:col-span-2 lg:h-full">
           {renderMap()}
           <div className="absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-black/60 to-transparent p-4 lg:p-8">
             <h2 className="text-3xl font-bold text-white">ETA: {eta}</h2>
